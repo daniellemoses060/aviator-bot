@@ -1,4 +1,9 @@
 requests
+python-telegram-bot
 beautifulsoup4
+schedule
+pytz
 scikit-learn
-telegram
+pandas
+numpy
+matplotlib
