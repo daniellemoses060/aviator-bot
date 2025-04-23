@@ -1,5 +1,4 @@
 requests
-python-telegram-bot
 beautifulsoup4
 schedule
 pytz
@@ -7,3 +6,6 @@ scikit-learn
 pandas
 numpy
 matplotlib
+playwright
+numpy
+python-telegram-bot==20.0
