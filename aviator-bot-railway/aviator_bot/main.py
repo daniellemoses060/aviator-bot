@@ -1,49 +1,43 @@
+import asyncio
 import time
-import logging
-from datetime import datetime, timedelta
-from scraper import scrape_data
 from telegram_alerts import send_telegram_alert
-from predictor import update_history, predict_next_cashout
+from scraper import get_live_multiplier
+from predictor import update_history, predict_next_multiplier
+import logging
+import datetime
 
 logging.basicConfig(level=logging.INFO)
 
-def format_bet_time(delay_minutes=2):
-    future_time = datetime.now() + timedelta(minutes=delay_minutes)
-    return future_time.strftime("%H:%M:%S")
+def should_send_signal(prediction):
+    return 1.8 <= prediction <= 10.0
 
-def run_bot():
+def format_time(dt):
+    return dt.strftime("%H:%M:%S")
+
+async def main_loop():
     while True:
         try:
-            logging.info("Scraping Betway Aviator data...")
-            game_data = scrape_data()
-
-            if game_data and "multiplier" in game_data:
-                multiplier = game_data["multiplier"]
+            multiplier = await get_live_multiplier()
+            if multiplier:
                 update_history(multiplier)
+                prediction = predict_next_multiplier()
 
-                # Run AI prediction
-                cashout_range, confidence = predict_next_cashout()
-                bet_time = format_bet_time(delay_minutes=2)
+                if should_send_signal(prediction):
+                    alert_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
+                    message = (
+                        f"*Aviator Signal*\n"
+                        f"Entry Time: *{format_time(alert_time)}*\n"
+                        f"Predicted Cashout: *{prediction}x*\n"
+                        f"Current Multiplier: {multiplier}x\n"
+                        f"Confidence: High\n"
+                        f"#Aviator #Signal"
+                    )
+                    send_telegram_alert(message)
 
-                # Create and send the Telegram message
-                message = (
-                    f"**Aviator Signal Alert**\n"
-                    f"Time to Bet: *{bet_time}*\n"
-                    f"Predicted Cashout Range: *{cashout_range}*\n"
-                    f"Confidence Score: *{confidence}%*\n"
-                    f"Last Multiplier: *{multiplier}x*\n"
-                    f"Prepare to enter in 2 minutes!"
-                )
-                send_telegram_alert(message)
-
-            else:
-                logging.warning("No multiplier data found during scraping.")
-
-            time.sleep(300)  # 5-minute interval
-
+            time.sleep(10)  # Wait before checking again
         except Exception as e:
             logging.error(f"Error in main loop: {e}")
-            time.sleep(60)  # Retry after 1 minute if an error occurs
+            time.sleep(15)
 
 if __name__ == "__main__":
-    run_bot()
+    asyncio.run(main_loop())
