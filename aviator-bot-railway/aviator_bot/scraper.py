@@ -1,34 +1,29 @@
-import requests
-from bs4 import BeautifulSoup
+import asyncio
+from playwright.async_api import async_playwright
+import logging
 
-def scrape_data():
-    """
-    Scrapes the Betway Aviator page and returns the latest game stats.
-    """
+async def get_live_multiplier():
     url = "https://www.betway.co.za/lobby/casino-games/launchgame/casino-games/trending/aviator?IsLoggedIn=true"
-    headers = {"User-Agent": "Mozilla/5.0"}
-
     try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Check if the request was successful
-        soup = BeautifulSoup(response.text, 'html.parser')
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            context = await browser.new_context()
+            page = await context.new_page()
+            await page.goto(url)
 
-        # Find the multiplier (this part is for demonstration, you need to adjust the selector based on actual HTML structure)
-        multiplier_element = soup.find("span", class_="multiplier")
-        multiplier = float(multiplier_element.text) if multiplier_element else None
+            await page.wait_for_timeout(5000)  # Wait for page content to load
 
-        # Find the crash point
-        crash_point_element = soup.find("span", class_="crash-point")
-        crash_point = float(crash_point_element.text) if crash_point_element else None
+            # Modify this selector as per the latest Aviator multiplier element
+            multiplier_element = await page.query_selector("css=span.multiplier")
+            multiplier = await multiplier_element.text_content() if multiplier_element else None
 
-        # Return game stats as a dictionary
-        game_stats = {
-            "multiplier": multiplier,
-            "crash_point": crash_point,
-        }
-
-        return game_stats
+            await browser.close()
+            return float(multiplier.replace("x", "")) if multiplier else None
 
     except Exception as e:
-        print(f"Error scraping data: {e}")
+        logging.error(f"[SCRAPER] Failed to get multiplier: {e}")
         return None
+
+# For testing purposes:
+if __name__ == "__main__":
+    print(asyncio.run(get_live_multiplier()))
