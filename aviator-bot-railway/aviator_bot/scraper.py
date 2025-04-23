@@ -10,16 +10,16 @@ async def fetch_multiplier():
             await page.goto("https://www.betway.co.za/lobby/casino-games/launchgame/casino-games/trending/aviator?IsLoggedIn=true", timeout=60000)
             await page.wait_for_timeout(5000)
 
-            # This selector must be updated if Betway changes structure
-            multiplier_element = await page.query_selector("span.multiplier")  # Example selector
-            if multiplier_element:
-                multiplier_text = await multiplier_element.inner_text()
-                multiplier = float(multiplier_text.replace("x", ""))
-                await browser.close()
-                return multiplier
+            # Update this selector based on actual Betway structure (placeholder)
+            element = await page.query_selector("span.multiplier")
+            if not element:
+                logging.warning("Multiplier element not found.")
+                return None
 
+            text = await element.inner_text()
+            multiplier = float(text.strip().replace("x", ""))
             await browser.close()
-            return None
+            return multiplier
     except Exception as e:
-        logging.error(f"[SCRAPER] Failed to get multiplier: {e}")
+        logging.error(f"Scraper error: {e}")
         return None
