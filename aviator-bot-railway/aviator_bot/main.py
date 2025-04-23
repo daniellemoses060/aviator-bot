@@ -1,43 +1,34 @@
 import asyncio
-import time
-from telegram_alerts import send_telegram_alert
-from scraper import get_live_multiplier
-from predictor import update_history, predict_next_multiplier
-import logging
+from src.scraper import fetch_multiplier
+from src.predictor import predict_entry
+from src.telegram_alerts import send_telegram_alert
 import datetime
+import logging
 
 logging.basicConfig(level=logging.INFO)
 
-def should_send_signal(prediction):
-    return 1.8 <= prediction <= 10.0
-
-def format_time(dt):
-    return dt.strftime("%H:%M:%S")
-
-async def main_loop():
+async def main():
     while True:
         try:
-            multiplier = await get_live_multiplier()
+            multiplier = await fetch_multiplier()
             if multiplier:
-                update_history(multiplier)
-                prediction = predict_next_multiplier()
-
-                if should_send_signal(prediction):
-                    alert_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
+                prediction = predict_entry(multiplier)
+                if prediction["signal"]:
+                    now = datetime.datetime.now().strftime("%H:%M:%S")
+                    entry_time = (datetime.datetime.now() + datetime.timedelta(minutes=2)).strftime("%H:%M:%S")
                     message = (
-                        f"*Aviator Signal*\n"
-                        f"Entry Time: *{format_time(alert_time)}*\n"
-                        f"Predicted Cashout: *{prediction}x*\n"
+                        f"**Aviator Signal**\n"
+                        f"Entry Time: {entry_time}\n"
+                        f"Predicted Cashout: {prediction['cashout']}x\n"
                         f"Current Multiplier: {multiplier}x\n"
-                        f"Confidence: High\n"
+                        f"Confidence: {prediction['confidence']}\n"
                         f"#Aviator #Signal"
                     )
                     send_telegram_alert(message)
-
-            time.sleep(10)
+            await asyncio.sleep(10)  # check every 10 seconds
         except Exception as e:
             logging.error(f"Error in main loop: {e}")
-            time.sleep(15)
+            await asyncio.sleep(30)
 
 if __name__ == "__main__":
-    asyncio.run(main_loop())
+    asyncio.run(main())
