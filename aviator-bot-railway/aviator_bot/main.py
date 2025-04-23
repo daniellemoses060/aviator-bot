@@ -34,7 +34,7 @@ async def main_loop():
                     )
                     send_telegram_alert(message)
 
-            time.sleep(10)  # Wait before checking again
+            time.sleep(10)
         except Exception as e:
             logging.error(f"Error in main loop: {e}")
             time.sleep(15)
