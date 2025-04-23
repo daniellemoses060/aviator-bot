@@ -11,9 +11,9 @@ async def get_live_multiplier():
             page = await context.new_page()
             await page.goto(url)
 
-            await page.wait_for_timeout(5000)  # Wait for page content to load
+            await page.wait_for_timeout(5000)  # Wait for content
 
-            # Modify this selector as per the latest Aviator multiplier element
+            # Update selector based on actual Betway page
             multiplier_element = await page.query_selector("css=span.multiplier")
             multiplier = await multiplier_element.text_content() if multiplier_element else None
 
@@ -24,6 +24,5 @@ async def get_live_multiplier():
         logging.error(f"[SCRAPER] Failed to get multiplier: {e}")
         return None
 
-# For testing purposes:
 if __name__ == "__main__":
     print(asyncio.run(get_live_multiplier()))
