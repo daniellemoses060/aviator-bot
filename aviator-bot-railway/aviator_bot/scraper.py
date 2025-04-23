@@ -2,27 +2,24 @@ import asyncio
 from playwright.async_api import async_playwright
 import logging
 
-async def get_live_multiplier():
-    url = "https://www.betway.co.za/lobby/casino-games/launchgame/casino-games/trending/aviator?IsLoggedIn=true"
+async def fetch_multiplier():
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context()
-            page = await context.new_page()
-            await page.goto(url)
+            page = await browser.new_page()
+            await page.goto("https://www.betway.co.za/lobby/casino-games/launchgame/casino-games/trending/aviator?IsLoggedIn=true", timeout=60000)
+            await page.wait_for_timeout(5000)
 
-            await page.wait_for_timeout(5000)  # Wait for content
-
-            # Update selector based on actual Betway page
-            multiplier_element = await page.query_selector("css=span.multiplier")
-            multiplier = await multiplier_element.text_content() if multiplier_element else None
+            # This selector must be updated if Betway changes structure
+            multiplier_element = await page.query_selector("span.multiplier")  # Example selector
+            if multiplier_element:
+                multiplier_text = await multiplier_element.inner_text()
+                multiplier = float(multiplier_text.replace("x", ""))
+                await browser.close()
+                return multiplier
 
             await browser.close()
-            return float(multiplier.replace("x", "")) if multiplier else None
-
+            return None
     except Exception as e:
         logging.error(f"[SCRAPER] Failed to get multiplier: {e}")
         return None
-
-if __name__ == "__main__":
-    print(asyncio.run(get_live_multiplier()))
