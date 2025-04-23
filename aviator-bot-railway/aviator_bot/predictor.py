@@ -1,18 +1,11 @@
-def predict_entry(latest_multiplier):
-    # Simple baseline strategy for safe testing
-    threshold = 1.85
-    confidence = "Medium"
-
-    if latest_multiplier > threshold:
-        signal = True
-        cashout = round(latest_multiplier + 0.4, 2)
-        confidence = "High" if latest_multiplier > 2.1 else "Medium"
-    else:
-        signal = False
-        cashout = None
+def predict_entry(multiplier):
+    # Basic rule: if last multiplier is above 1.85x, consider it a signal
+    signal = multiplier >= 1.85
+    cashout = round(multiplier + 0.4, 2)
+    confidence = "High" if multiplier >= 2.1 else "Medium"
 
     return {
         "signal": signal,
-        "cashout": cashout,
-        "confidence": confidence
+        "cashout": cashout if signal else None,
+        "confidence": confidence if signal else "Low"
     }
