@@ -1,11 +1,9 @@
 import telegram
+import asyncio
 
-BOT_TOKEN = "7828413663:AAG5yJpgDo2Q7tl7X8d6MKYvirAQBwPapII"
-CHAT_ID = "5002184829"
+bot_token = "7828413663:AAG5yJpgDo2Q7tl7X8d6MKYvirAQBwPapII"
+chat_id = "5002184829"
 
-def send_telegram_alert(message):
-    try:
-        bot = telegram.Bot(token=BOT_TOKEN)
-        bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="Markdown")
-    except Exception as e:
-        print(f"[Telegram] Failed to send message: {e}")
+async def send_alert(message):
+    bot = telegram.Bot(token=bot_token)
+    await bot.send_message(chat_id=chat_id, text=message)
