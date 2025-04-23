@@ -1,2 +1,1 @@
-worker: python3 -u aviator_bot/main.py
-playwright install chromium
+web: playwright install chromium && python3 main.py
